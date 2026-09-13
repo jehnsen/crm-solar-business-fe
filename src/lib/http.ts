@@ -1,15 +1,27 @@
 import "server-only";
+import { getSessionToken } from "./session";
 
 /**
  * The HTTP client behind the seam.
  *
- * `server-only` is load-bearing: the API token lives in this module's closure,
- * and importing it from a client component is a build error rather than a
- * silent credential leak. Every caller is a server component or route handler.
+ * `server-only` is load-bearing: every token this module can use lives only
+ * in a server closure or an httpOnly cookie, and importing this file from a
+ * client component is a build error rather than a silent credential leak.
+ * Every caller is a server component or route handler.
+ *
+ * Token resolution, per request:
+ *   1. The signed-in staff member's session cookie, if `/login` set one.
+ *   2. `SOLAR_API_TOKEN` from env, as a fallback.
+ *
+ * The fallback exists so `npm run build`, seed scripts, and anyone who hasn't
+ * touched the login page yet keep working exactly as before — it is not a
+ * bypass a signed-in request can hit, since (1) always wins once a session
+ * exists. Once every caller goes through `/login`, this file is the only
+ * place that needs to know the fallback is there at all.
  */
 
 const BASE = process.env.SOLAR_API_URL ?? "http://127.0.0.1:8000/api";
-const TOKEN = process.env.SOLAR_API_TOKEN ?? "";
+const ENV_TOKEN = process.env.SOLAR_API_TOKEN ?? "";
 
 /** Thrown when the backend is unreachable or answers with an error status. */
 export class ApiError extends Error {
@@ -21,6 +33,11 @@ export class ApiError extends Error {
     super(message);
     this.name = "ApiError";
   }
+}
+
+async function resolveToken(): Promise<string> {
+  const sessionToken = await getSessionToken();
+  return sessionToken ?? ENV_TOKEN;
 }
 
 export interface FetchOptions {
@@ -46,9 +63,10 @@ function url(path: string, query?: FetchOptions["query"]): string {
  * reading is live.
  */
 export async function apiGet<T>(path: string, options: FetchOptions = {}): Promise<T> {
-  if (!TOKEN) {
+  const token = await resolveToken();
+  if (!token) {
     throw new ApiError(
-      "SOLAR_API_TOKEN is not set. Copy .env.example to .env.local and mint a token.",
+      "Not signed in, and SOLAR_API_TOKEN is not set either. Sign in at /login, or copy .env.example to .env.local and mint a token.",
       null,
       path,
     );
@@ -58,7 +76,7 @@ export async function apiGet<T>(path: string, options: FetchOptions = {}): Promi
   try {
     res = await fetch(url(path, options.query), {
       headers: {
-        Authorization: `Bearer ${TOKEN}`,
+        Authorization: `Bearer ${token}`,
         Accept: "application/json",
       },
       next: { revalidate: options.revalidate ?? 0 },
@@ -72,7 +90,7 @@ export async function apiGet<T>(path: string, options: FetchOptions = {}): Promi
   }
 
   if (!res.ok) {
-    const detail = res.status === 401 ? " (token rejected — mint a new one)" : "";
+    const detail = res.status === 401 ? " (token rejected — sign in again)" : "";
     throw new ApiError(`GET ${path} failed: ${res.status} ${res.statusText}${detail}`, res.status, path);
   }
 

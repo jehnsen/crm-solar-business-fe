@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
 import { Space_Grotesk } from "next/font/google";
 import "./globals.css";
-import { AppShell } from "@/components/shell/AppShell";
-import { getReferenceData } from "@/lib/api";
-import { ReferenceProvider } from "@/lib/ReferenceProvider";
 
 const grotesk = Space_Grotesk({
   variable: "--font-grotesk",
@@ -19,35 +16,22 @@ export const metadata: Metadata = {
 };
 
 /**
- * Every page reads live from the API, so nothing is prerendered.
+ * The true root. Deliberately thin: html shell, font, global CSS — nothing
+ * that needs an authenticated fetch.
  *
- * This is a correctness choice before it is a build one: static HTML baked at
- * build time would show whatever the pipeline looked like when someone last
- * deployed, which is exactly the wrong thing for a board whose whole job is
- * telling staff what is stuck *today*. It also keeps `next build` from
- * depending on a running backend.
+ * The authenticated shell (reference data, AppShell, the redirect-on-401
+ * guard) lives one level down in `(app)/layout.tsx`, wrapping every real
+ * page but not `/login`. Doing the reference fetch here instead was the bug:
+ * every route shares this layout, `/login` included, so a signed-out visit
+ * to `/login` triggered `getReferenceData()`, got a 401, and redirected to
+ * `/login` — from `/login`. The route group is what actually excludes it,
+ * not a pathname check, which would have to be re-remembered by hand for
+ * every future exception.
  */
-export const dynamic = "force-dynamic";
-
-export default async function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  // Staff, customers, catalog and warranties, fetched once per request. The
-  // seam's synchronous lookups read these, so they have to be in place before
-  // any workspace renders.
-  const reference = await getReferenceData();
-
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${grotesk.variable} h-full`}>
-      <body className="min-h-full antialiased">
-        <ReferenceProvider data={reference}>
-          <AppShell currentUser={reference.team.find((t) => t.id === reference.currentUserId) ?? null}>
-            {children}
-          </AppShell>
-        </ReferenceProvider>
-      </body>
+      <body className="min-h-full antialiased">{children}</body>
     </html>
   );
 }

@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Activity,
   Bell,
+  ChevronDown,
   ClipboardCheck,
   Contact as ContactIcon,
   FileSignature,
@@ -14,6 +15,7 @@ import {
   LayoutDashboard,
   LifeBuoy,
   ListChecks,
+  LogOut,
   Menu,
   Search,
   Settings,
@@ -258,20 +260,90 @@ function TopBar({
           <span className="absolute right-1.5 top-1.5 size-1.5 rounded-full bg-solar ring-2 ring-structural" />
         </button>
 
-        {me && (
-          <div className="flex items-center gap-2 rounded pl-1.5 sm:pr-1">
-            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-solar text-micro font-bold text-[#241704]">
-              {me.initials}
-            </span>
-            <span className="hidden min-w-0 leading-tight sm:block">
-              <span className="block truncate text-tiny font-semibold text-white">{me.name}</span>
-              <span className="block truncate text-micro text-slate-400">
-                {TEAM_ROLE[me.role]}
-              </span>
-            </span>
-          </div>
-        )}
+        {me && <UserMenu member={me} />}
       </div>
     </header>
+  );
+}
+
+function UserMenu({ member }: { member: TeamMember }) {
+  const [open, setOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function onPointerDown(e: PointerEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setOpen(false);
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  async function signOut() {
+    setSigningOut(true);
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } finally {
+      // A hard navigation, not router.push: the reference data and every
+      // server component in the tree were fetched under the now-revoked
+      // session, and only a full reload forces the root layout to re-run
+      // getReferenceData() rather than keep serving that stale render.
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+      window.location.assign("/login");
+    }
+  }
+
+  return (
+    <div ref={menuRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-haspopup="menu"
+        className="flex items-center gap-2 rounded pl-1.5 pr-2 py-1 transition-colors hover:bg-white/10 sm:pr-2.5"
+      >
+        <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-solar text-micro font-bold text-[#241704]">
+          {member.initials}
+        </span>
+        <span className="hidden min-w-0 leading-tight sm:block">
+          <span className="block truncate text-tiny font-semibold text-white">{member.name}</span>
+          <span className="block truncate text-micro text-slate-400">{TEAM_ROLE[member.role]}</span>
+        </span>
+        <ChevronDown
+          className={clsx("hidden size-3.5 shrink-0 text-slate-400 transition-transform sm:block", open && "rotate-180")}
+          strokeWidth={2}
+        />
+      </button>
+
+      {open && (
+        <div
+          role="menu"
+          className="animate-panel-in absolute right-0 top-[calc(100%+6px)] w-56 overflow-hidden rounded-md border border-rule bg-surface shadow-[0_10px_28px_rgba(16,25,43,0.22)]"
+        >
+          <div className="border-b border-rule px-3 py-2.5">
+            <p className="truncate text-sm font-semibold text-ink">{member.name}</p>
+            <p className="truncate text-tiny text-muted">{member.email}</p>
+          </div>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={signOut}
+            disabled={signingOut}
+            className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-sm text-ink-soft transition-colors hover:bg-canvas-sunk disabled:opacity-60"
+          >
+            <LogOut className="size-4 shrink-0 text-muted" strokeWidth={1.9} />
+            {signingOut ? "Signing out…" : "Sign out"}
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
