@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { LifeBuoy, Plus, Search, ShieldCheck } from "lucide-react";
-import { contactOf, memberName } from "@/lib/api";
+import { contactOf, memberName } from "@/lib/lookups";
 import {
   TICKET_CATEGORY,
   TICKET_PRIORITY,

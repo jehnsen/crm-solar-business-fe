@@ -1,7 +1,7 @@
 "use client";
 
 import { Send } from "lucide-react";
-import { contactOf, inverterSpec, memberName, panelSpec } from "@/lib/api";
+import { contactOf, inverterSpec, memberName, panelSpec } from "@/lib/lookups";
 import { FINANCING, PROPOSAL_STATUS } from "@/lib/labels";
 import { date, kw, kwh, num, pct, usd } from "@/lib/format";
 import type { Proposal } from "@/lib/types";

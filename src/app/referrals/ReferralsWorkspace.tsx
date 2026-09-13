@@ -3,8 +3,8 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Search, Share2, UserPlus } from "lucide-react";
-import { contactOf } from "@/lib/api";
-import type { ReferrerStanding } from "@/lib/api";
+import { contactOf } from "@/lib/lookups";
+import type { ReferrerStanding } from "@/lib/lookups";
 import { REFERRAL_STATUS, REFERRAL_STATUS_ORDER } from "@/lib/labels";
 import { date, pct, relativeDays, usd, usdCompact } from "@/lib/format";
 import type { Referral, ReferralStatus } from "@/lib/types";

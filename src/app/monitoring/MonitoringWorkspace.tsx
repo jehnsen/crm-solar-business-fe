@@ -1,14 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Activity, Search, TriangleAlert } from "lucide-react";
-import { contactOf } from "@/lib/api";
-import { monitoringReadings } from "@/data/monitoring";
+import { contactOf } from "@/lib/lookups";
 import { SYSTEM_HEALTH } from "@/lib/labels";
 import { date, dateTime, kwh, num, pct, pctDelta } from "@/lib/format";
 import type { MonitoredSystem, MonitoringReading } from "@/lib/types";
-import type { MonthlyPoint } from "@/lib/api";
+import type { FleetSummary, MonthlyPoint } from "@/lib/lookups";
 import { PageBody, PageHeader, ViewTab } from "@/components/ui/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
 import {
@@ -23,51 +22,16 @@ import { ProductionChart } from "./ProductionChart";
 
 type Scale = "daily" | "monthly";
 
-/** Series are derived client-side from the same fixtures the seam reads, so
- *  switching systems needs no round trip in this frontend-only build. */
-function dailyFor(systemId: string, days: number): MonitoringReading[] {
-  return monitoringReadings
-    .filter((r) => r.systemId === systemId)
-    .sort((a, b) => a.date.localeCompare(b.date))
-    .slice(-days);
-}
-
-function monthlyFor(systemId: string, months: number): MonthlyPoint[] {
-  const buckets = new Map<string, MonthlyPoint>();
-  for (const r of monitoringReadings) {
-    if (r.systemId !== systemId) continue;
-    const month = r.date.slice(0, 7);
-    const hit = buckets.get(month);
-    if (hit) {
-      hit.producedKwh += r.producedKwh;
-      hit.expectedKwh += r.expectedKwh;
-    } else {
-      buckets.set(month, {
-        month,
-        label: new Date(`${month}-01T00:00:00`).toLocaleDateString("en-US", {
-          month: "short",
-          year: "2-digit",
-        }),
-        producedKwh: r.producedKwh,
-        expectedKwh: r.expectedKwh,
-      });
-    }
-  }
-  return [...buckets.values()]
-    .sort((a, b) => a.month.localeCompare(b.month))
-    .slice(-months)
-    .map((p) => ({
-      ...p,
-      producedKwh: Math.round(p.producedKwh),
-      expectedKwh: Math.round(p.expectedKwh),
-    }));
-}
-
 export function MonitoringWorkspace({
   systems,
+  fleet,
   initialSystemId,
+  initialDaily,
+  initialMonthly,
 }: {
   systems: MonitoredSystem[];
+  /** Fleet roll-up, derived server-side from the live readings. */
+  fleet: FleetSummary;
   initialSystemId: string;
   initialDaily: MonitoringReading[];
   initialMonthly: MonthlyPoint[];
@@ -76,10 +40,38 @@ export function MonitoringWorkspace({
   const [scale, setScale] = useState<Scale>("daily");
   const [query, setQuery] = useState("");
 
-  const selected = systems.find((s) => s.id === selectedId) ?? systems[0];
+  // The series for the system the page opened on arrive as props; switching
+  // systems fetches the next one rather than shipping every reading to the
+  // browser.
+  const [series, setSeries] = useState<Record<string, { daily: MonitoringReading[]; monthly: MonthlyPoint[] }>>({
+    [initialSystemId]: { daily: initialDaily, monthly: initialMonthly },
+  });
 
-  const daily = useMemo(() => dailyFor(selected.id, 60), [selected.id]);
-  const monthly = useMemo(() => monthlyFor(selected.id, 12), [selected.id]);
+  const selected = systems.find((s) => s.id === selectedId) ?? systems[0];
+  const loaded = series[selected.id];
+
+  useEffect(() => {
+    if (loaded) return;
+
+    // setState happens in the response callback, never synchronously in the
+    // effect body — the latter cascades a render and the lint rule is right to
+    // reject it.
+    const controller = new AbortController();
+
+    fetch(`/api/monitoring/${selected.id}?days=60&months=12`, { signal: controller.signal })
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
+      .then((body: { daily: MonitoringReading[]; monthly: MonthlyPoint[] }) => {
+        setSeries((prev) => ({ ...prev, [selected.id]: body }));
+      })
+      .catch(() => {
+        /* Leaving it unloaded shows an empty chart rather than stale numbers. */
+      });
+
+    return () => controller.abort();
+  }, [selected.id, loaded]);
+
+  const daily = useMemo(() => loaded?.daily ?? [], [loaded]);
+  const monthly = useMemo(() => loaded?.monthly ?? [], [loaded]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -90,21 +82,6 @@ export function MonitoringWorkspace({
   }, [systems, query]);
 
   const flagged = systems.filter((s) => s.health !== "healthy");
-
-  // Fleet roll-up for yesterday, computed the same way the dashboard does it.
-  const fleet = useMemo(() => {
-    const yesterday = "2026-09-11";
-    const rows = monitoringReadings.filter((r) => r.date === yesterday);
-    const produced = rows.reduce((s, r) => s + r.producedKwh, 0);
-    const expected = rows.reduce((s, r) => s + r.expectedKwh, 0);
-    return {
-      produced: Math.round(produced),
-      expected: Math.round(expected),
-      ratio: expected > 0 ? Math.round((produced / expected) * 100) : 0,
-      sizeKw: systems.reduce((s, x) => s + x.systemSizeKw, 0),
-      lifetime: systems.reduce((s, x) => s + x.lifetimeKwh, 0),
-    };
-  }, [systems]);
 
   const chartData =
     scale === "daily"
@@ -141,14 +118,15 @@ export function MonitoringWorkspace({
       <PageBody className="space-y-4">
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
           <MetricTile label="Systems monitored" value={systems.length} tone="info" icon={Activity} />
-          <MetricTile label="Fleet size" value={num(fleet.sizeKw, 1)} unit="kW" tone="solar" />
+          <MetricTile label="Fleet size" value={num(fleet.fleetSizeKw, 1)} unit="kW" tone="solar" />
           <MetricTile
             label="Produced yesterday"
-            value={num(fleet.produced)}
+            value={num(fleet.producedYesterday)}
             unit="kWh"
             delta={{
-              text: `${pct(fleet.ratio)} of model`,
-              tone: fleet.ratio >= 95 ? "ok" : fleet.ratio >= 85 ? "warn" : "danger",
+              text: `${pct(fleet.ratioYesterday)} of model`,
+              tone:
+                fleet.ratioYesterday >= 95 ? "ok" : fleet.ratioYesterday >= 85 ? "warn" : "danger",
             }}
           />
           <MetricTile
@@ -159,7 +137,7 @@ export function MonitoringWorkspace({
           />
           <MetricTile
             label="Lifetime production"
-            value={num(fleet.lifetime)}
+            value={num(fleet.lifetimeKwh)}
             unit="kWh"
             tone="ok"
           />

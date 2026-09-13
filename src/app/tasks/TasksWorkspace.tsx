@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { CalendarClock, Check, CircleAlert, ListChecks, Search } from "lucide-react";
-import { contactOf, memberName } from "@/lib/api";
+import { contactOf, memberName } from "@/lib/lookups";
 import {
   TASK_KIND,
   TASK_PRIORITY,

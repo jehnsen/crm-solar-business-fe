@@ -2,10 +2,11 @@
 
 import { useMemo, useState } from "react";
 import { FileText, Plus, Search } from "lucide-react";
-import { contactOf, memberName } from "@/lib/api";
+import { contactOf, memberName } from "@/lib/lookups";
 import { FINANCING, PROPOSAL_STATUS } from "@/lib/labels";
 import { date, kw, kwh, num, pct, usd } from "@/lib/format";
-import type { InverterSpec, PanelSpec, Proposal } from "@/lib/types";
+import type { PricingConstants } from "@/lib/lookups";
+import type { Contact, InverterSpec, PanelSpec, Proposal } from "@/lib/types";
 import { PageBody, PageHeader, ViewTab } from "@/components/ui/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { Column, DataTable, SelectFilter, TableToolbar } from "@/components/ui/DataTable";
@@ -21,10 +22,16 @@ export function ProposalsWorkspace({
   proposals,
   panels,
   inverters,
+  contacts,
+  pricing,
 }: {
   proposals: Proposal[];
   panels: PanelSpec[];
   inverters: InverterSpec[];
+  /** Passed through to the builder's customer picker. */
+  contacts: Contact[];
+  /** Rates and incentives the builder's savings math assumes. */
+  pricing: PricingConstants;
 }) {
   const [view, setView] = useState<View>("list");
   const [openId, setOpenId] = useState<string | null>(null);
@@ -170,7 +177,12 @@ export function ProposalsWorkspace({
 
       <PageBody className="space-y-3">
         {view === "builder" ? (
-          <ProposalBuilder panels={panels} inverters={inverters} />
+          <ProposalBuilder
+            panels={panels}
+            inverters={inverters}
+            contacts={contacts}
+            pricing={pricing}
+          />
         ) : (
           <>
             <TableToolbar>

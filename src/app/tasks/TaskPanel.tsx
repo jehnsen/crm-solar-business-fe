@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Check, Clock, MapPin, Phone } from "lucide-react";
-import { contactOf, member } from "@/lib/api";
+import { contactOf, member } from "@/lib/lookups";
 import { TASK_KIND, TASK_PRIORITY, TASK_STATUS, TASK_TRIGGER } from "@/lib/labels";
 import { TODAY, date, dayCount, daysBetween, relativeDays } from "@/lib/format";
 import type { Task, TaskStatus } from "@/lib/types";

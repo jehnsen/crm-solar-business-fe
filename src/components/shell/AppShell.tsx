@@ -24,7 +24,8 @@ import {
   X,
 } from "lucide-react";
 import { clsx } from "clsx";
-import { currentUserId, team } from "@/data/team";
+import { TEAM_ROLE } from "@/lib/labels";
+import type { TeamMember } from "@/lib/types";
 
 const NAV = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -41,7 +42,15 @@ const NAV = [
   { href: "/contacts", label: "Contacts", icon: ContactIcon },
 ] as const;
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({
+  children,
+  currentUser,
+}: {
+  children: React.ReactNode;
+  /** Resolved server-side from the API and passed down, so the shell renders
+   *  the real signed-in staff member rather than reaching into fixtures. */
+  currentUser: TeamMember | null;
+}) {
   const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -83,7 +92,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <TopBar onOpenDrawer={() => setDrawerOpen(true)} />
+        <TopBar onOpenDrawer={() => setDrawerOpen(true)} currentUser={currentUser} />
         <main className="min-w-0 flex-1">{children}</main>
       </div>
     </div>
@@ -203,8 +212,14 @@ function SidebarContent({
   );
 }
 
-function TopBar({ onOpenDrawer }: { onOpenDrawer: () => void }) {
-  const me = team.find((t) => t.id === currentUserId) ?? team[0];
+function TopBar({
+  onOpenDrawer,
+  currentUser,
+}: {
+  onOpenDrawer: () => void;
+  currentUser: TeamMember | null;
+}) {
+  const me = currentUser;
 
   return (
     <header className="chrome sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-black/25 bg-structural px-3 sm:px-5">
@@ -243,15 +258,19 @@ function TopBar({ onOpenDrawer }: { onOpenDrawer: () => void }) {
           <span className="absolute right-1.5 top-1.5 size-1.5 rounded-full bg-solar ring-2 ring-structural" />
         </button>
 
-        <div className="flex items-center gap-2 rounded pl-1.5 sm:pr-1">
-          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-solar text-micro font-bold text-[#241704]">
-            {me.initials}
-          </span>
-          <span className="hidden min-w-0 leading-tight sm:block">
-            <span className="block truncate text-tiny font-semibold text-white">{me.name}</span>
-            <span className="block truncate text-micro text-slate-400">Project manager</span>
-          </span>
-        </div>
+        {me && (
+          <div className="flex items-center gap-2 rounded pl-1.5 sm:pr-1">
+            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-solar text-micro font-bold text-[#241704]">
+              {me.initials}
+            </span>
+            <span className="hidden min-w-0 leading-tight sm:block">
+              <span className="block truncate text-tiny font-semibold text-white">{me.name}</span>
+              <span className="block truncate text-micro text-slate-400">
+                {TEAM_ROLE[me.role]}
+              </span>
+            </span>
+          </div>
+        )}
       </div>
     </header>
   );

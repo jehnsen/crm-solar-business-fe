@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { CalendarPlus, ChevronLeft, ChevronRight, ClipboardCheck } from "lucide-react";
-import { contactOf, memberName } from "@/lib/api";
+import { contactOf, memberName } from "@/lib/lookups";
 import { ROOF_CONDITION, ROOF_TYPE, SURVEY_STATUS } from "@/lib/labels";
 import { TODAY, date, dateWithDay, num, pct, time } from "@/lib/format";
 import type { SiteSurvey } from "@/lib/types";

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Check, MapPin, Package } from "lucide-react";
-import { contactOf, member } from "@/lib/api";
+import { contactOf, member } from "@/lib/lookups";
 import { INSTALL_STAGE, INSTALL_STAGE_ORDER } from "@/lib/labels";
 import { date, kw, num } from "@/lib/format";
 import type { InstallProject, InstallStage } from "@/lib/types";

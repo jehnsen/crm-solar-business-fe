@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { CircleCheck, Wrench } from "lucide-react";
-import { contactOf, memberName, warrantyForContact } from "@/lib/api";
+import { contactOf, memberName, warrantyForContact } from "@/lib/lookups";
 import {
   TICKET_CATEGORY,
   TICKET_PRIORITY,

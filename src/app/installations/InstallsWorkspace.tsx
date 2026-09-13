@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { HardHat, Search } from "lucide-react";
-import { contactOf, memberName } from "@/lib/api";
+import { contactOf, memberName } from "@/lib/lookups";
 import { INSTALL_STAGE, INSTALL_STAGE_ORDER } from "@/lib/labels";
 import { date, dateWithDay, kw, num } from "@/lib/format";
 import type { InstallProject, InstallStage } from "@/lib/types";

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { FileSignature, Search } from "lucide-react";
-import { contactOf, memberName } from "@/lib/api";
+import { contactOf, memberName } from "@/lib/lookups";
 import { CONTRACT_STATUS, CONTRACT_STATUS_ORDER } from "@/lib/labels";
 import { date, relativeDays, usd } from "@/lib/format";
 import type { Contract, ContractStatus } from "@/lib/types";

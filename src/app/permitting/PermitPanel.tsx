@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { CircleAlert } from "lucide-react";
-import { memberName, type PermitProjectView } from "@/lib/api";
+import { memberName, type PermitProjectView } from "@/lib/lookups";
 import { PERMIT_STATUS, PERMIT_STEP } from "@/lib/labels";
 import { date, dayCount, relativeDays } from "@/lib/format";
 import { Button } from "@/components/ui/Button";

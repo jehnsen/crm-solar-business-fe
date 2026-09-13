@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Contact as ContactIcon, Search } from "lucide-react";
-import { memberName } from "@/lib/api";
+import { memberName } from "@/lib/lookups";
 import { INSTALL_STAGE, LEAD_STAGE, PROPERTY_TYPE } from "@/lib/labels";
 import { date, kw } from "@/lib/format";
 import type { Contact, InstallStage, LeadStage } from "@/lib/types";

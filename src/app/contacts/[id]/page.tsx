@@ -8,7 +8,6 @@ import {
   Phone,
   Zap,
 } from "lucide-react";
-import { contacts } from "@/data/contacts";
 import { contactName, getContactDossier, getContactTimeline, memberName } from "@/lib/api";
 import {
   CONTRACT_STATUS,
@@ -33,9 +32,8 @@ import { PipelineTracker, type TrackerStep } from "@/components/ui/PipelineTrack
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Field, FieldList } from "@/components/ui/SlideOver";
 
-export function generateStaticParams() {
-  return contacts.map((c) => ({ id: c.id }));
-}
+// No generateStaticParams: contact records change while staff work, so these
+// pages render per request rather than being frozen at build time.
 
 export default async function ContactDetailPage({
   params,

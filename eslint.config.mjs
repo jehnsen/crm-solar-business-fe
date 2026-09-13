@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // The Laravel API. Its vendored JS (Symfony's error pages, etc.) is not
+    // ours to lint and buries real findings under thousands of warnings.
+    "backend/**",
   ]),
 ]);
 

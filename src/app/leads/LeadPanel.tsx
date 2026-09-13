@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight, CalendarPlus, Mail, MapPin, Phone } from "lucide-react";
-import { contactOf, member } from "@/lib/api";
+import { contactOf, member } from "@/lib/lookups";
 import {
   LEAD_SOURCE,
   LEAD_STAGE,

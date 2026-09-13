@@ -1,10 +1,10 @@
-import { getDailyReadings, getMonitoredSystems, getMonthlyReadings } from "@/lib/api";
+import { getDailyReadings, getFleetSummary, getMonitoredSystems, getMonthlyReadings } from "@/lib/api";
 import { MonitoringWorkspace } from "./MonitoringWorkspace";
 
 export const metadata = { title: "Monitoring — Solar Ops" };
 
 export default async function MonitoringPage() {
-  const systems = await getMonitoredSystems();
+  const [systems, fleet] = await Promise.all([getMonitoredSystems(), getFleetSummary()]);
 
   // Worst performers first — that's who someone needs to look at today.
   const ordered = [...systems].sort((a, b) => {
@@ -22,6 +22,7 @@ export default async function MonitoringPage() {
   return (
     <MonitoringWorkspace
       systems={ordered}
+      fleet={fleet}
       initialSystemId={initial.id}
       initialDaily={daily}
       initialMonthly={monthly}

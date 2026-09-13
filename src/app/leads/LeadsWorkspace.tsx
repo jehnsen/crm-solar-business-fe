@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { CircleAlert, Plus, Search, Users } from "lucide-react";
 import { LEAD_SOURCE, LEAD_STAGE, LEAD_STAGE_ORDER } from "@/lib/labels";
-import { contactOf, member, memberName } from "@/lib/api";
+import { contactOf, member, memberName } from "@/lib/lookups";
 import { date, isOverdue, kw, relativeDays, usd } from "@/lib/format";
 import type { Lead, LeadStage } from "@/lib/types";
 import { PageBody, PageHeader, ViewTab } from "@/components/ui/PageHeader";

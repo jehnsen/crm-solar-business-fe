@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { FileText, Send } from "lucide-react";
-import { contactOf, memberName } from "@/lib/api";
+import { contactOf, memberName } from "@/lib/lookups";
 import { CONTRACT_STATUS, CONTRACT_STATUS_ORDER } from "@/lib/labels";
 import { date, dateTime, usd } from "@/lib/format";
 import type { Contract } from "@/lib/types";

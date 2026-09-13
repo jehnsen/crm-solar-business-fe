@@ -1,7 +1,7 @@
 "use client";
 
 import { Camera, Check, MapPin, Zap } from "lucide-react";
-import { contactOf, memberName } from "@/lib/api";
+import { contactOf, memberName } from "@/lib/lookups";
 import { ROOF_CONDITION, ROOF_TYPE, SURVEY_STATUS } from "@/lib/labels";
 import { dateWithDay, num, pct, time } from "@/lib/format";
 import type { SiteSurvey } from "@/lib/types";

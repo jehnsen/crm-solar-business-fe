@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { CircleAlert, Search, Stamp, TriangleAlert } from "lucide-react";
-import { memberName, type PermitProjectView } from "@/lib/api";
+import { memberName, type PermitProjectView } from "@/lib/lookups";
 import { PERMIT_STATUS, PERMIT_STEP, PERMIT_STEP_ORDER } from "@/lib/labels";
 import { date, dayCount, relativeDays } from "@/lib/format";
 import type { PermitStepKey } from "@/lib/types";

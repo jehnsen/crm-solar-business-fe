@@ -2,11 +2,10 @@
 
 import { useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, Send } from "lucide-react";
-import { contacts } from "@/data/contacts";
-import { batteryPriceUsd, financingTerms, incentiveRates, kwhPerKwYear, utilityRateUsdPerKwh } from "@/data/catalog";
 import { kw, kwh, num, pct, usd } from "@/lib/format";
 import { FINANCING } from "@/lib/labels";
-import type { FinancingKind, InverterSpec, PanelSpec } from "@/lib/types";
+import type { PricingConstants } from "@/lib/lookups";
+import type { Contact, FinancingKind, InverterSpec, PanelSpec } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader, MetricTile } from "@/components/ui/Primitives";
 import { AlertLine } from "@/components/ui/Primitives";
@@ -32,10 +31,18 @@ const WATTS_PER_SQFT = 15.5;
 export function ProposalBuilder({
   panels,
   inverters,
+  contacts,
+  pricing,
 }: {
   panels: PanelSpec[];
   inverters: InverterSpec[];
+  contacts: Contact[];
+  /** Rates and incentives the savings math assumes, served by the API. */
+  pricing: PricingConstants;
 }) {
+  const { batteryPriceUsd, financingTerms, incentiveRates, kwhPerKwYear, utilityRateUsdPerKwh } =
+    pricing;
+
   const [step, setStep] = useState(0);
 
   // Step 1
@@ -133,7 +140,20 @@ export function ProposalBuilder({
       paybackYears,
       eligibleForCredit,
     };
-  }, [monthlyBill, targetOffset, roofArea, panel, inverter, battery, financing]);
+  }, [
+    monthlyBill,
+    targetOffset,
+    roofArea,
+    panel,
+    inverter,
+    battery,
+    financing,
+    batteryPriceUsd,
+    financingTerms,
+    incentiveRates,
+    kwhPerKwYear,
+    utilityRateUsdPerKwh,
+  ]);
 
   const canAdvance = step < STEPS.length - 1;
 
