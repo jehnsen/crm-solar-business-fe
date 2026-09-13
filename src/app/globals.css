@@ -1,0 +1,187 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Solar Ops CRM — design tokens
+   Deep charcoal-navy chrome, warm solar-gold accent used sparingly, warm
+   off-white canvas. Status colors are deliberately kept off the amber ramp so
+   a "warning" pill never reads as a primary action.
+   --------------------------------------------------------------------------- */
+
+@theme {
+  /* Structural + canvas */
+  --color-canvas: #faf9f6;
+  --color-canvas-sunk: #f2f0ea;
+  --color-surface: #ffffff;
+  --color-structural: #10192b;
+  --color-structural-hi: #1b273d;
+  --color-structural-hover: #223050;
+
+  /* Accent — solar gold. Primary actions and active nav only. */
+  --color-solar: #e8a33d;
+  --color-solar-hot: #d4902b;
+  --color-solar-wash: #fdf4e5;
+
+  /* Text ramp */
+  --color-ink: #1a1f29;
+  --color-ink-soft: #414a59;
+  --color-muted: #6b7280;
+  --color-faint: #98a0ae;
+
+  /* Rules */
+  --color-rule: #e3e0d8;
+  --color-rule-firm: #d2cec3;
+
+  /* Status — tuned for contrast on #FAF9F6, distinct from solar gold */
+  --color-ok: #1f7a52;
+  --color-ok-wash: #e6f2ec;
+  --color-warn: #9a5b12;
+  --color-warn-wash: #fbeedd;
+  --color-danger: #a32c22;
+  --color-danger-wash: #fbeae8;
+  --color-info: #1d5a8f;
+  --color-info-wash: #e7f0f8;
+  --color-idle-wash: #eceae4;
+
+  --font-sans: var(--font-grotesk), "Helvetica Neue", Arial, sans-serif;
+
+  /* Disciplined scale — no display face, this is a working tool. */
+  --text-micro: 0.6875rem;
+  --text-micro--line-height: 1rem;
+  --text-tiny: 0.75rem;
+  --text-tiny--line-height: 1.125rem;
+  --text-sm: 0.8125rem;
+  --text-sm--line-height: 1.25rem;
+  --text-base: 0.875rem;
+  --text-base--line-height: 1.375rem;
+  --text-lg: 1rem;
+  --text-lg--line-height: 1.5rem;
+  --text-xl: 1.125rem;
+  --text-xl--line-height: 1.625rem;
+  --text-2xl: 1.375rem;
+  --text-2xl--line-height: 1.875rem;
+  --text-3xl: 1.75rem;
+  --text-3xl--line-height: 2.125rem;
+  --text-metric: 2rem;
+  --text-metric--line-height: 2.25rem;
+
+  --radius-sm: 3px;
+  --radius-DEFAULT: 4px;
+  --radius-md: 5px;
+  --radius-lg: 7px;
+}
+
+@layer base {
+  html {
+    background-color: var(--color-canvas);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+    font-feature-settings: "cv05" 1;
+  }
+
+  /* Columns of kWh / currency / dates must align. */
+  table,
+  .tnum {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+
+  *:focus-visible {
+    outline: 2px solid var(--color-solar);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  /* Dark chrome needs a focus ring that survives the navy. */
+  .chrome *:focus-visible {
+    outline: 2px solid var(--color-solar);
+    outline-offset: 1px;
+  }
+
+  ::selection {
+    background-color: #f6dcae;
+    color: var(--color-ink);
+  }
+
+  th {
+    font-weight: 600;
+  }
+}
+
+@layer utilities {
+  .scrollbar-slim {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-rule-firm) transparent;
+  }
+  .scrollbar-slim::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+  }
+  .scrollbar-slim::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-slim::-webkit-scrollbar-thumb {
+    background-color: var(--color-rule-firm);
+    border-radius: 5px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+
+  .scrollbar-dark {
+    scrollbar-width: thin;
+    scrollbar-color: #33415c transparent;
+  }
+  .scrollbar-dark::-webkit-scrollbar {
+    width: 9px;
+  }
+  .scrollbar-dark::-webkit-scrollbar-thumb {
+    background-color: #33415c;
+    border-radius: 5px;
+  }
+}
+
+/* Functional motion only — and none of it if the OS says no. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@keyframes panel-in {
+  from {
+    transform: translateX(14px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes scrim-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-panel-in {
+  animation: panel-in 170ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.animate-scrim-in {
+  animation: scrim-in 140ms linear;
+}
